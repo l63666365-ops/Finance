@@ -85,6 +85,9 @@
             <option value="pemasukan">💰 Pemasukan (Uang Masuk)</option>
             <option value="kebutuhan">🛒 Kebutuhan (Uang Keluar)</option>
             <option value="self-reward">🎁 Self-Reward (Uang Keluar)</option>
+            <option value="investasi">📈 Investasi (Uang Keluar)</option>
+            <option value="darurat">🛡️ Darurat (Uang Keluar)</option>
+            <option value="sedekah">🙏 Sedekah (Uang Keluar)</option>
         </select>
     </div>
 
@@ -99,7 +102,7 @@
 <div id="myModal" class="modal">
     <div class="modal-content">
         <h4 style="margin-bottom: 5px;">Rencana 50/30/20</h4>
-        <p style="font-size: 0.75rem; color: #888; margin-bottom: 15px;">Pembagian dari total saldo saat ini</p>
+        <p style="font-size: 0.75rem; color: #888; margin-bottom: 15px;">Pembagian saldo untuk tiap kategori</p>
         <canvas id="myChart" style="margin-bottom: 20px;"></canvas>
         <div id="detailAlokasi" style="text-align: left; font-size: 0.85rem; line-height: 1.6;"></div>
         <button class="btn" style="background:#e74c3c; margin-top:20px;" onclick="tutupModal()">Tutup</button>
@@ -112,7 +115,7 @@
 
     function formatRupiah(angka) {
         let val = Math.abs(angka).toLocaleString('id-ID');
-        return "Rp " + val + ",-";
+        return (angka < 0 ? "-" : "") + "Rp " + val + ",-";
     }
 
     function renderUI() {
@@ -130,7 +133,7 @@
             }
         });
 
-        totalSaldo.innerText = (saldoHitung < 0 ? "- " : "") + formatRupiah(saldoHitung);
+        totalSaldo.innerText = formatRupiah(saldoHitung);
 
         dbKeuangan.slice().reverse().forEach((item, index) => {
             const realIndex = dbKeuangan.length - 1 - index;
@@ -166,7 +169,7 @@
         }
 
         dbKeuangan.push({
-            jumlah: jumlah,
+            jumlah: parseInt(jumlah),
             keterangan: ket,
             kategori: kat,
             waktu: new Date().getTime()
@@ -187,24 +190,43 @@
     function bukaModal() {
         document.getElementById('myModal').style.display = "block";
         
-        let saldoSaatIni = 0;
+        let totalPemasukan = 0;
+        let pengeluaran = { kebutuhan: 0, 'self-reward': 0, investasi: 0, darurat: 0, sedekah: 0 };
+
         dbKeuangan.forEach(item => {
-            if(item.kategori === 'pemasukan') saldoSaatIni += parseInt(item.jumlah);
-            else saldoSaatIni -= parseInt(item.jumlah);
+            if(item.kategori === 'pemasukan') {
+                totalPemasukan += item.jumlah;
+            } else {
+                if (pengeluaran.hasOwnProperty(item.kategori)) {
+                    pengeluaran[item.kategori] += item.jumlah;
+                }
+            }
         });
 
-        const referensiUang = saldoSaatIni > 0 ? saldoSaatIni : 0;
-        const kebutuhan = referensiUang * 0.5;
-        const reward = referensiUang * 0.3;
-        const bagiTiga = (referensiUang * 0.2) / 3;
+        // Hitung Jatah Awal (Rumus 50/30/20)
+        let jatah = {
+            kebutuhan: totalPemasukan * 0.5,
+            reward: totalPemasukan * 0.3,
+            invest: (totalPemasukan * 0.2) / 3,
+            darurat: (totalPemasukan * 0.2) / 3,
+            sedekah: (totalPemasukan * 0.2) / 3
+        };
+
+        // Sisa Jatah = Jatah Awal - Pengeluaran Kategori Tersebut
+        const sisa = {
+            kebutuhan: jatah.kebutuhan - pengeluaran.kebutuhan,
+            reward: jatah.reward - pengeluaran['self-reward'],
+            invest: jatah.invest - pengeluaran.investasi,
+            darurat: jatah.darurat - pengeluaran.darurat,
+            sedekah: jatah.sedekah - pengeluaran.sedekah
+        };
 
         document.getElementById('detailAlokasi').innerHTML = `
-            <strong>🛒 Sisa Kebutuhan (50%):</strong> ${formatRupiah(kebutuhan)}<br>
-            <strong>🎁 Sisa Reward (30%):</strong> ${formatRupiah(reward)}<br>
-            <strong>📈 Investasi (6.6%):</strong> ${formatRupiah(bagiTiga)}<br>
-            <strong>🛡️ Darurat (6.6%):</strong> ${formatRupiah(bagiTiga)}<br>
-            <strong>🙏 Sedekah (6.6%):</strong> ${formatRupiah(bagiTiga)}
-            ${saldoSaatIni < 0 ? '<br><small style="color:red">*Saldo sayang lagi minus, hati-hati ya!</small>' : ''}
+            <strong>🛒 Sisa Kebutuhan:</strong> ${formatRupiah(sisa.kebutuhan)}<br>
+            <strong>🎁 Sisa Reward:</strong> ${formatRupiah(sisa.reward)}<br>
+            <strong>📈 Sisa Investasi:</strong> ${formatRupiah(sisa.invest)}<br>
+            <strong>🛡️ Sisa Darurat:</strong> ${formatRupiah(sisa.darurat)}<br>
+            <strong>🙏 Sisa Sedekah:</strong> ${formatRupiah(sisa.sedekah)}
         `;
 
         const ctx = document.getElementById('myChart').getContext('2d');
@@ -214,7 +236,14 @@
             data: {
                 labels: ['Kebutuhan', 'Reward', 'Investasi', 'Darurat', 'Sedekah'],
                 datasets: [{
-                    data: [kebutuhan, reward, bagiTiga, bagiTiga, bagiTiga],
+                    // Jika sisa minus, tampilkan 0 di grafik agar tidak error, tapi teks tetap minus
+                    data: [
+                        Math.max(0, sisa.kebutuhan), 
+                        Math.max(0, sisa.reward), 
+                        Math.max(0, sisa.invest), 
+                        Math.max(0, sisa.darurat), 
+                        Math.max(0, sisa.sedekah)
+                    ],
                     backgroundColor: ['#1e3c72', '#ffc107', '#27ae60', '#e67e22', '#9b59b6']
                 }]
             },

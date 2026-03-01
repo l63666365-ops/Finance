@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 15px; color: #333; }
+        .container { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 20px; }
+        
+        .wallet-card { 
+            background: linear-gradient(135deg, #1e3c72, #2a5298); 
+            color: white; padding: 25px; border-radius: 20px; 
+            text-align: center; margin-bottom: 20px; box-shadow: 0 8px 15px rgba(30, 60, 114, 0.3);
+        }
+        .wallet-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
+        .wallet-balance { font-size: 1.8rem; font-weight: bold; margin-top: 5px; }
+
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input, select { 
+            width: 100%; padding: 12px; border: 1.5px solid #eee; 
+            border-radius: 12px; font-size: 1rem; box-sizing: border-box; outline: none; transition: 0.3s;
+        }
+        input:focus { border-color: #2a5298; }
+
+        .btn { 
+            width: 100%; padding: 15px; border-radius: 12px; border: none; 
+            color: white; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px;
+        }
+        .btn-save { background: #2a5298; box-shadow: 0 4px 10px rgba(42, 82, 152, 0.3); }
+        
+        .history-section { margin-top: 30px; }
+        .history-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px 0; border-bottom: 1px solid #f0f0f0; 
+        }
+        .item-left { display: flex; align-items: center; gap: 10px; }
+        .btn-delete { 
+            color: #e74c3c; border: none; background: #ffdada; 
+            width: 25px; height: 25px; border-radius: 50%; 
+            cursor: pointer; font-weight: bold; font-size: 0.8rem;
+        }
+        .info-text { display: flex; flex-direction: column; }
+        .item-title { font-weight: bold; font-size: 0.95rem; }
+        .item-category { font-size: 0.75rem; color: #888; margin-top: 2px; }
+        .amount-in { color: #27ae60; font-weight: bold; }
+        .amount-out { color: #e74c3c; font-weight: bold; }
+
+        .btn-calc { position: fixed; top: 20px; right: 20px; background: #ffc107; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 100; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; }
+        .modal-content { background: white; margin: 10% auto; padding: 25px; width: 85%; max-width: 400px; border-radius: 25px; text-align: center; position: relative; }
+    </style>
+</head>
+<body>
+
+<button class="btn-calc" onclick="bukaModal()">📊</button>
+
+<div class="container">
+    <div class="header">
+        <h3 style="margin:0;">Catatan Keuangan</h3>
+        <small style="color:#888;">Halo, catat yuk!</small>
+    </div>
+
+    <div class="wallet-card">
+        <div class="wallet-label">Total Saldo Saat Ini</div>
+        <div class="wallet-balance" id="totalSaldo">Rp 0,-</div>
+    </div>
+
+    <div class="input-group">
+        <label>Jumlah Uang (Rp)</label>
+        <input type="number" id="inputJumlah" placeholder="Contoh: 10000">
+    </div>
+
+    <div class="input-group">
+        <label>Keterangan</label>
+        <input type="text" id="inputKet" placeholder="Contoh: Jajan">
+    </div>
+
+    <div class="input-group">
+        <label>Kategori</label>
+        <select id="inputKat">
+            <option value="pemasukan">💰 Pemasukan (Uang Masuk)</option>
+            <option value="kebutuhan">🛒 Kebutuhan (Uang Keluar)</option>
+            <option value="self-reward">🎁 Self-Reward (Uang Keluar)</option>
+        </select>
+    </div>
+
+    <button class="btn btn-save" onclick="tambahTransaksi()">Simpan Transaksi</button>
+
+    <div class="history-section">
+        <h4 style="margin-bottom: 15px;">Riwayat Transaksi</h4>
+        <div id="listHistory"></div>
+    </div>
+</div>
+
+<div id="myModal" class="modal">
+    <div class="modal-content">
+        <h4 style="margin-bottom: 5px;">Rencana 50/30/20</h4>
+        <p style="font-size: 0.75rem; color: #888; margin-bottom: 15px;">Pembagian dari total saldo saat ini</p>
+        <canvas id="myChart" style="margin-bottom: 20px;"></canvas>
+        <div id="detailAlokasi" style="text-align: left; font-size: 0.85rem; line-height: 1.6;"></div>
+        <button class="btn" style="background:#e74c3c; margin-top:20px;" onclick="tutupModal()">Tutup</button>
+    </div>
+</div>
+
+<script>
+    let dbKeuangan = JSON.parse(localStorage.getItem('myFinanceDataFinal')) || [];
+    let myChart = null;
+
+    function formatRupiah(angka) {
+        let val = Math.abs(angka).toLocaleString('id-ID');
+        return "Rp " + val + ",-";
+    }
+
+    function renderUI() {
+        const listHistory = document.getElementById('listHistory');
+        const totalSaldo = document.getElementById('totalSaldo');
+        let saldoHitung = 0;
+        
+        listHistory.innerHTML = '';
+
+        dbKeuangan.forEach((item) => {
+            if(item.kategori === 'pemasukan') {
+                saldoHitung += parseInt(item.jumlah);
+            } else {
+                saldoHitung -= parseInt(item.jumlah);
+            }
+        });
+
+        totalSaldo.innerText = (saldoHitung < 0 ? "- " : "") + formatRupiah(saldoHitung);
+
+        dbKeuangan.slice().reverse().forEach((item, index) => {
+            const realIndex = dbKeuangan.length - 1 - index;
+            const isMasuk = item.kategori === 'pemasukan';
+
+            listHistory.innerHTML += `
+                <div class="history-item">
+                    <div class="item-left">
+                        <button class="btn-delete" onclick="hapusSatu(${realIndex})">×</button>
+                        <div class="info-text">
+                            <span class="item-title">${item.keterangan}</span>
+                            <span class="item-category">${item.kategori.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <div class="${isMasuk ? 'amount-in' : 'amount-out'}">
+                        ${isMasuk ? '+' : '-'} ${formatRupiah(item.jumlah)}
+                    </div>
+                </div>
+            `;
+        });
+
+        localStorage.setItem('myFinanceDataFinal', JSON.stringify(dbKeuangan));
+    }
+
+    function tambahTransaksi() {
+        const jumlah = document.getElementById('inputJumlah').value;
+        const ket = document.getElementById('inputKet').value;
+        const kat = document.getElementById('inputKat').value;
+
+        if (jumlah === "" || ket === "") {
+            alert("Isi jumlah uang dan keterangannya terlebih dahulu!");
+            return;
+        }
+
+        dbKeuangan.push({
+            jumlah: jumlah,
+            keterangan: ket,
+            kategori: kat,
+            waktu: new Date().getTime()
+        });
+
+        renderUI();
+        document.getElementById('inputJumlah').value = '';
+        document.getElementById('inputKet').value = '';
+    }
+
+    function hapusSatu(index) {
+        if(confirm("Yakin mau hapus catatan ini?")) {
+            dbKeuangan.splice(index, 1);
+            renderUI();
+        }
+    }
+
+    function bukaModal() {
+        document.getElementById('myModal').style.display = "block";
+        
+        let saldoSaatIni = 0;
+        dbKeuangan.forEach(item => {
+            if(item.kategori === 'pemasukan') saldoSaatIni += parseInt(item.jumlah);
+            else saldoSaatIni -= parseInt(item.jumlah);
+        });
+
+        const referensiUang = saldoSaatIni > 0 ? saldoSaatIni : 0;
+        const kebutuhan = referensiUang * 0.5;
+        const reward = referensiUang * 0.3;
+        const bagiTiga = (referensiUang * 0.2) / 3;
+
+        document.getElementById('detailAlokasi').innerHTML = `
+            <strong>🛒 Sisa Kebutuhan (50%):</strong> ${formatRupiah(kebutuhan)}<br>
+            <strong>🎁 Sisa Reward (30%):</strong> ${formatRupiah(reward)}<br>
+            <strong>📈 Investasi (6.6%):</strong> ${formatRupiah(bagiTiga)}<br>
+            <strong>🛡️ Darurat (6.6%):</strong> ${formatRupiah(bagiTiga)}<br>
+            <strong>🙏 Sedekah (6.6%):</strong> ${formatRupiah(bagiTiga)}
+            ${saldoSaatIni < 0 ? '<br><small style="color:red">*Saldo sayang lagi minus, hati-hati ya!</small>' : ''}
+        `;
+
+        const ctx = document.getElementById('myChart').getContext('2d');
+        if (myChart) myChart.destroy();
+        myChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Kebutuhan', 'Reward', 'Investasi', 'Darurat', 'Sedekah'],
+                datasets: [{
+                    data: [kebutuhan, reward, bagiTiga, bagiTiga, bagiTiga],
+                    backgroundColor: ['#1e3c72', '#ffc107', '#27ae60', '#e67e22', '#9b59b6']
+                }]
+            },
+            options: { plugins: { legend: { display: false } } }
+        });
+    }
+
+    function tutupModal() {
+        document.getElementById('myModal').style.display = "none";
+    }
+
+    renderUI();
+</script>
+
+</body>
+</html>

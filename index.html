@@ -3,53 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Finance - Midnight Forest</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-    /* PEMISAH BAGIAN */
-.section-divider { 
-    height: 20px; 
-    background: #f0f2f5; /* Warna abu-abu yang sama dengan background body */
-    margin: 25px -20px;  /* Margin negatif agar garisnya memotong sampai pinggir container */
-}
+        .section-divider { 
+            height: 20px; 
+            background: #f0f2f5; 
+            margin: 25px -20px;
+        }
     
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 15px; color: #333; }
         .container { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     
         .header { text-align: center; margin-bottom: 20px; }
-        .wallet-card { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; padding: 25px; border-radius: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 8px 15px rgba(30, 60, 114, 0.3); }
+        .wallet-card { background: linear-gradient(135deg, #134e5e, #71b280); color: white; padding: 25px; border-radius: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 8px 15px rgba(19, 78, 94, 0.3); }
         .wallet-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
         .wallet-balance { font-size: 1.8rem; font-weight: bold; margin-top: 5px; }
         .input-group { margin-bottom: 15px; }
         label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: #555; }
         input, select { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 12px; font-size: 1rem; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus { border-color: #2a5298; }
+        input:focus { border-color: #134e5e; }
         .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; color: white; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px; }
-        .btn-save { background: #2a5298; box-shadow: 0 4px 10px rgba(42, 82, 152, 0.3); }
+        .btn-save { background: #134e5e; box-shadow: 0 4px 10px rgba(19, 78, 94, 0.3); }
         .history-section { margin-top: 30px; }
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f0f0f0; }
         .item-left { display: flex; align-items: center; gap: 10px; }
         .btn-delete { color: #e74c3c; border: none; background: #ffdada; width: 25px; height: 25px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
         .info-text { display: flex; flex-direction: column; text-align: left; }
         .item-title { font-weight: bold; font-size: 0.95rem; }
-        .item-category { font-size: 0.75rem; color: #888; margin-top: 2px; }
+        .item-category { font-size: 0.7rem; color: #888; margin-top: 2px; }
+        /* STYLE UNTUK WAKTU */
+        .item-time { font-size: 0.65rem; color: #bbb; margin-top: 1px; }
         .amount-in { color: #27ae60; font-weight: bold; }
         .amount-out { color: #e74c3c; font-weight: bold; }
-        .btn-calc { position: fixed; top: 20px; right: 20px; background: #ffc107; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 100; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; }
-        .modal-content { background: white; margin: 10% auto; padding: 25px; width: 85%; max-width: 400px; border-radius: 25px; text-align: center; position: relative; }
-        .priority-section { margin-top: 15px; padding-top: px; border-top: 2px dashed #eef0f2; }
-        .target-card { background: #fff; border: 1.5px solid #eee; padding: 15px; border-radius: 18px; margin-bottom: 12px; text-align: left; }
+        
+        .target-card { background: #fff; border: 1.5px solid #eee; border-left: 5px solid #134e5e; padding: 15px; border-radius: 18px; margin-bottom: 12px; text-align: left; }
+        
         .progress-container { background: #f0f0f0; height: 8px; border-radius: 10px; margin: 10px 0; overflow: hidden; }
-        .progress-fill { background: #27ae60; height: 100%; transition: 0.6s ease; }
+        .progress-fill { background: #71b280; height: 100%; transition: 0.6s ease; }
         .target-header { display: flex; justify-content: space-between; align-items: center; }
         .target-footer { display: flex; justify-content: space-between; font-size: 0.75rem; color: #777; font-weight: 500; }
     </style>
 </head>
 <body>
-
-<button class="btn-calc" onclick="bukaModal()">📊</button>
 
 <div class="container">
     <div class="header">
@@ -75,19 +71,15 @@
     <div class="input-group">
         <label>Kategori</label>
         <select id="inputKat" onchange="cekKategori(this.value)">
-    <option value="pemasukan">💰 Pemasukan (Uang Masuk)</option>
-    <option value="kebutuhan">🛒 Kebutuhan (Uang Keluar)</option>
-    <option value="investasi">📈 Investasi (Uang Keluar)</option>
-    <option value="darurat">🛡️ Darurat (Uang Keluar)</option>
-    <option value="sedekah">🙏 Sedekah (Uang Keluar)</option>
-    <option value="target_prioritas">🎯 Prioritas Tabungan</option>
-</select>
+            <option value="pemasukan">💰 Pemasukan</option>
+            <option value="target_prioritas">📊 Alokasi Dana</option>
+        </select>
     </div>
 
     <div id="areaPilihTarget" style="display: none; margin-bottom: 20px;">
-    <p style="font-size: 0.8rem; font-weight: bold; color: #2a5298; margin-bottom: 8px;">📍 Simpan ke tabungan mana?</p>
-    <div id="wadahPilihanTarget" style="display: flex; flex-direction: column; gap: 10px;"></div>
-</div>
+        <p style="font-size: 0.8rem; font-weight: bold; color: #134e5e; margin-bottom: 8px;">📍 Simpan ke tabungan mana?</p>
+        <div id="wadahPilihanTarget" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
 
     <button class="btn btn-save" onclick="tambahTransaksi()">Simpan Transaksi</button>
 
@@ -99,106 +91,100 @@
     <div class="section-divider"></div>
     
     <div class="priority-section">
-        <h4 style="margin-bottom: 15px;">🎯 Prioritas Tabungan</h4>
+        <h4 style="margin-bottom: 15px;">📊 Alokasi Dana</h4>
         <div style="background: #f8f9fa; padding: 15px; border-radius: 18px; margin-bottom: 15px; border: 1px solid #eee;">
             <div class="input-group" style="margin-bottom: 8px;">
-                <input type="text" id="namaTarget" placeholder="Mau beli apa?" style="padding: 10px; font-size: 0.9rem;">
+                <input type="text" id="namaTarget" placeholder="Kategori apa?" style="padding: 10px; font-size: 0.9rem;">
             </div>
             <div style="display: flex; gap: 8px;">
                 <input type="number" id="hargaTarget" placeholder="Harga" style="padding: 10px; font-size: 0.9rem;">
-                <select id="skalaTarget" style="padding: 10px; font-size: 0.9rem; width: 85px;">
-                    <option value="🔴">🔴 Tinggi: Harus segera terbeli</option><option value="🟡">🟡 Sedang: Bisa nanti</option><option value="🟢">🟢 Rendah: Cuma kalau ada uang sisa banget</option>
-                </select>
-                <button onclick="tambahTargetBaru()" style="background: #2a5298; color: white; border: none; border-radius: 10px; width: 45px; cursor: pointer; font-weight: bold;">+</button>
+                <button onclick="tambahTargetBaru()" style="background: #134e5e; color: white; border: none; border-radius: 10px; width: 45px; cursor: pointer; font-weight: bold; font-size: 1.2rem;">+</button>
             </div>
         </div>
         <div id="listTarget"></div>
     </div>
 </div>
 
-<div id="myModal" class="modal">
-    <div class="modal-content">
-        <h4 style="margin-bottom: 5px;">Rencana 80/20</h4>
-        <p style="font-size: 0.7rem; color: #888; margin-bottom: 15px;">Pembagian saldo untuk tiap kategori<br>80% Kebutuhan & 20% Tabungan/Sosial</p>
-        <canvas id="myChart" style="margin-bottom: 20px;"></canvas>
-        <div id="detailAlokasi" style="text-align: left; font-size: 0.85rem; line-height: 1.8;"></div>
-        <button class="btn" style="background:#e74c3c; margin-top:20px;" onclick="tutupModal()">Tutup</button>
-    </div>
-</div>
-
 <script>
-    function cekKategori(val) {
-    const areaTarget = document.getElementById('areaPilihTarget');
-    if (val === 'target_prioritas') {
-        areaTarget.style.display = 'block';
-        renderPilihanTarget(); // Pastikan daftar dibuat ulang saat diklik
-    } else {
-        areaTarget.style.display = 'none';
-    }
-}
-
-function renderPilihanTarget() {
-    const wadah = document.getElementById('wadahPilihanTarget');
-    if (!wadah) return; // Keamanan biar gak error kalau element belum ada
-    
-    wadah.innerHTML = ''; 
-    
-    if (dbTarget.length === 0) {
-        wadah.innerHTML = '<div style="color:#e74c3c; font-size:0.8rem; padding:10px; text-align:center; border:1px solid #ffdada; border-radius:10px;">Kamu belum buat target tabungan. Buat dulu di bawah!</div>';
-        return;
-    }
-
-    dbTarget.forEach((tg, index) => {
-        wadah.innerHTML += `
-            <label style="display: flex; align-items: center; gap: 12px; background: white; padding: 15px; border-radius: 15px; cursor: pointer; border: 1.5px solid #eee; transition: 0.2s;" onclick="this.style.borderColor='#2a5298'">
-                <input type="radio" name="pilihTargetTabungan" value="${index}" style="width: 20px; height: 20px; accent-color: #2a5298;">
-                <div style="display: flex; flex-direction: column;">
-                    <span style="font-weight: bold; font-size: 0.9rem;">${tg.skala} ${tg.nama}</span>
-                    <span style="font-size: 0.75rem; color: #888;">Target: ${formatRupiah(tg.harga)}</span>
-                </div>
-            </label>
-        `;
-    });
-}
-
     let dbKeuangan = JSON.parse(localStorage.getItem('myFinanceDataFinal')) || [];
     let dbTarget = JSON.parse(localStorage.getItem('myTargetPrioritas')) || [];
-    let myChart = null;
 
     function formatRupiah(angka) {
         let val = Math.abs(angka).toLocaleString('id-ID');
         return (angka < 0 ? "-" : "") + "Rp " + val + ",-";
     }
 
+    /* FUNGSI BARU UNTUK FORMAT WAKTU LENGKAP */
+    function formatWaktu(timestamp) {
+        if (!timestamp) return "";
+        const date = new Date(timestamp);
+        const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+        const bulanArr = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+        
+        const hari = hariArr[date.getDay()];
+        const tgl = date.getDate();
+        const bulan = bulanArr[date.getMonth()];
+        const tahun = date.getFullYear();
+        const jam = String(date.getHours()).padStart(2, '0');
+        const menit = String(date.getMinutes()).padStart(2, '0');
+        
+        return `${hari}, ${tgl} ${bulan} ${tahun} - ${jam}:${menit}`;
+    }
+
+    function cekKategori(val) {
+        const areaTarget = document.getElementById('areaPilihTarget');
+        if (val === 'target_prioritas') {
+            areaTarget.style.display = 'block';
+            renderPilihanTarget();
+        } else {
+            areaTarget.style.display = 'none';
+        }
+    }
+
+    function renderPilihanTarget() {
+        const wadah = document.getElementById('wadahPilihanTarget');
+        if (!wadah) return;
+        wadah.innerHTML = ''; 
+        if (dbTarget.length === 0) {
+            wadah.innerHTML = '<div style="color:#e74c3c; font-size:0.8rem; padding:10px; text-align:center; border:1px solid #ffdada; border-radius:10px;">Belum ada target tabungan.</div>';
+            return;
+        }
+        dbTarget.forEach((tg, index) => {
+            wadah.innerHTML += `
+                <label style="display: flex; align-items: center; gap: 12px; background: white; padding: 15px; border-radius: 15px; cursor: pointer; border: 1.5px solid #eee;">
+                    <input type="radio" name="pilihTargetTabungan" value="${index}" style="width: 20px; height: 20px; accent-color: #134e5e;">
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-weight: bold; font-size: 0.9rem;">${tg.nama}</span>
+                        <span style="font-size: 0.75rem; color: #888;">Target: ${formatRupiah(tg.harga)}</span>
+                    </div>
+                </label>`;
+        });
+    }
+
     function renderUI() {
         const listHistory = document.getElementById('listHistory');
         const totalSaldo = document.getElementById('totalSaldo');
         let saldoHitung = 0;
-        
         listHistory.innerHTML = '';
         dbKeuangan.forEach((item) => {
-            if(item.kategori === 'pemasukan') {
-                saldoHitung += parseInt(item.jumlah);
-            } else if(item.kategori !== 'target_prioritas' && item.kategori !== 'pembelian_selesai') {
-                saldoHitung -= parseInt(item.jumlah);
-            }
+            if(item.kategori === 'pemasukan') saldoHitung += parseInt(item.jumlah);
+            else saldoHitung -= parseInt(item.jumlah);
         });
-
         totalSaldo.innerText = formatRupiah(saldoHitung);
-
         dbKeuangan.slice().reverse().forEach((item, index) => {
             const realIndex = dbKeuangan.length - 1 - index;
             const isMasuk = item.kategori === 'pemasukan';
             const isPrioritas = item.kategori === 'target_prioritas';
             const isSelesai = item.kategori === 'pembelian_selesai';
-
+            
             listHistory.innerHTML += `
                 <div class="history-item" style="${isPrioritas || isSelesai ? 'background: #fcfcfc;' : ''}">
                     <div class="item-left">
                         <button class="btn-delete" onclick="hapusSatu(${realIndex})">×</button>
                         <div class="info-text">
                             <span class="item-title">${item.keterangan}</span>
-                            <span class="item-category">${isPrioritas ? 'PRIORITAS TABUNGAN' : (isSelesai ? 'PRIORITAS TABUNGAN' : item.kategori.replace('_',' ').toUpperCase())}</span>
+                            <span class="item-category">${isPrioritas ? 'Alokasi Dana' : (isSelesai ? 'Alokasi Dana' : item.kategori.replace('_',' ').toUpperCase())}</span>
+                            <span class="item-time">${formatWaktu(item.waktu)}</span>
                         </div>
                     </div>
                     <div class="${isMasuk ? 'amount-in' : (isPrioritas || isSelesai ? '' : 'amount-out')}">
@@ -206,60 +192,48 @@ function renderPilihanTarget() {
                     </div>
                 </div>`;
         });
-
         localStorage.setItem('myFinanceDataFinal', JSON.stringify(dbKeuangan));
         renderTargetList();
         renderPilihanTarget(); 
     }
 
     function tambahTransaksi() {
-    const jumlah = document.getElementById('inputJumlah').value;
-    const ket = document.getElementById('inputKet').value;
-    const kat = document.getElementById('inputKat').value;
-    
-    if (!jumlah) {
-        Swal.fire({ icon: 'warning', title: 'Ups!', text: 'Isi jumlah uang dan keterangann dulu!', confirmButtonColor: '#2a5298' });
-        return;
-    }
-
-    let dataBaru = { 
-        jumlah: parseInt(jumlah), 
-        keterangan: ket, 
-        kategori: kat, 
-        waktu: new Date().getTime() 
-    };
-
-    if (kat === 'target_prioritas') {
-        const dipilih = document.querySelector('input[name="pilihTargetTabungan"]:checked');
-        if (!dipilih) {
-            Swal.fire({ icon: 'info', text: 'Pilih dulu target tabungannya!' });
+        const jumlah = document.getElementById('inputJumlah').value;
+        const ket = document.getElementById('inputKet').value;
+        const kat = document.getElementById('inputKat').value;
+        if (!jumlah) {
+            Swal.fire({ icon: 'warning', title: 'Ups!', text: 'Isi jumlah uang dulu!', confirmButtonColor: '#134e5e' });
             return;
         }
-        
-        const targetObj = dbTarget[dipilih.value];
-        dataBaru.targetId = targetObj.id; // INI KUNCINYA: Simpan ID targetnya
-        dataBaru.keterangan = `${targetObj.nama} ${ket}`;
+        let dataBaru = { 
+            jumlah: parseInt(jumlah), 
+            keterangan: ket || (kat === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran'), 
+            kategori: kat, 
+            waktu: new Date().getTime() 
+        };
+        if (kat === 'target_prioritas') {
+            const dipilih = document.querySelector('input[name="pilihTargetTabungan"]:checked');
+            if (!dipilih) {
+                Swal.fire({ icon: 'info', text: 'Pilih dulu target tabungannya!' });
+                return;
+            }
+            const targetObj = dbTarget[dipilih.value];
+            dataBaru.targetId = targetObj.id;
+            dataBaru.keterangan = `${targetObj.nama} ${ket}`;
+        }
+        dbKeuangan.push(dataBaru);
+        renderUI();
+        document.getElementById('inputJumlah').value = '';
+        document.getElementById('inputKet').value = '';
+        document.getElementById('areaPilihTarget').style.display = 'none';
     }
-    
-    dbKeuangan.push(dataBaru);
-    renderUI();
-    
-    document.getElementById('inputJumlah').value = '';
-    document.getElementById('inputKet').value = '';
-    document.getElementById('areaPilihTarget').style.display = 'none';
-}
-
-
 
     function hapusSatu(index) {
         Swal.fire({
             title: 'Hapus catatan ini?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e74c3c',
-            cancelButtonColor: '#aaa',
-            confirmButtonText: 'Hapus',
-            cancelButtonText: 'Batal'
+            confirmButtonColor: '#e74c3c'
         }).then((result) => {
             if (result.isConfirmed) {
                 dbKeuangan.splice(index, 1);
@@ -269,173 +243,93 @@ function renderPilihanTarget() {
     }
 
     function tambahTargetBaru() {
-    const nama = document.getElementById('namaTarget').value;
-    const harga = document.getElementById('hargaTarget').value;
-    const skala = document.getElementById('skalaTarget').value;
-    
-    if (!nama || !harga) {
-        Swal.fire({ icon: 'info', text: 'Lengkapi data!', confirmButtonColor: '#2a5298' });
-        return;
+        const nama = document.getElementById('namaTarget').value;
+        const harga = document.getElementById('hargaTarget').value;
+        if (!nama || !harga) {
+            Swal.fire({ icon: 'info', text: 'Lengkapi data!', confirmButtonColor: '#134e5e' });
+            return;
+        }
+        dbTarget.push({ id: Date.now(), nama: nama, harga: parseInt(harga) });
+        localStorage.setItem('myTargetPrioritas', JSON.stringify(dbTarget));
+        document.getElementById('namaTarget').value = '';
+        document.getElementById('hargaTarget').value = '';
+        renderTargetList();
+        renderPilihanTarget();
     }
 
-    // Pakai Date.now() sebagai ID unik
-    const targetBaru = { 
-        id: Date.now(), 
-        nama: nama, 
-        harga: parseInt(harga), 
-        skala: skala 
-    };
-    
-    dbTarget.push(targetBaru);
-    localStorage.setItem('myTargetPrioritas', JSON.stringify(dbTarget));
-    
-    document.getElementById('namaTarget').value = '';
-    document.getElementById('hargaTarget').value = '';
-    renderTargetList();
-    renderPilihanTarget(); // Update daftar pilihan di atas
-}
-
-
     function selesaikanTargetById(targetId) {
-    const target = dbTarget.find(t => t.id === targetId);
-    if (!target) return;
-
-    Swal.fire({
-        title: 'Hebat!',
-        text: `${target.nama} sudah terbeli. Simpan ke riwayat?`,
-        icon: 'success',
-        showCancelButton: true,
-        confirmButtonColor: '#27ae60',
-        confirmButtonText: 'Ya, Simpan',
-        cancelButtonText: 'Hapus Target Saja'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Catat sebagai transaksi final
-            dbKeuangan.push({
-                jumlah: target.harga,
-                keterangan: `<img src="https://imagepng.org/wp-content/uploads/2019/12/check-icone-3.png" style="width: 15px; height: 15px; vertical-align: middle; margin-right: 4.5px;"> ${target.nama}`,
-                kategori: 'pembelian_selesai',
-                waktu: new Date().getTime()
-            });
-        }
-        
-        // Bersihkan riwayat tabungan cicilannya karena barangnya sudah terbeli
-        dbKeuangan = dbKeuangan.filter(item => item.targetId !== targetId);
-        
-        // Hapus target dari daftar prioritas
-        dbTarget = dbTarget.filter(t => t.id !== targetId);
-        
-        // Update tampilan dan storage
-        localStorage.setItem('myTargetPrioritas', JSON.stringify(dbTarget));
-        localStorage.setItem('myFinanceDataFinal', JSON.stringify(dbKeuangan));
-        renderUI();
-    });
-}
-
-
-    function hapusTargetSajaById(targetId) {
-    const targetHapus = dbTarget.find(t => t.id === targetId);
-    if (!targetHapus) return;
-
-    Swal.fire({
-        title: 'Hapus target?',
-        text: `Semua riwayat simpanan untuk "${targetHapus.nama}" juga akan dihapus otomatis!`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#e74c3c',
-        confirmButtonText: 'Ya, Hapus Semua'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Hapus riwayat yang punya targetId ini
+        const target = dbTarget.find(t => t.id === targetId);
+        if (!target) return;
+        Swal.fire({
+            title: 'Hebat!',
+            text: `${target.nama} sudah terbeli. Simpan ke riwayat?`,
+            icon: 'success',
+            showCancelButton: true,
+            confirmButtonColor: '#71b280',
+            confirmButtonText: 'Ya, Simpan'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                dbKeuangan.push({
+                    jumlah: target.harga,
+                    keterangan: `✅ ${target.nama}`,
+                    kategori: 'pembelian_selesai',
+                    waktu: new Date().getTime()
+                });
+            }
             dbKeuangan = dbKeuangan.filter(item => item.targetId !== targetId);
-            // Hapus targetnya sendiri
             dbTarget = dbTarget.filter(t => t.id !== targetId);
-            
             localStorage.setItem('myTargetPrioritas', JSON.stringify(dbTarget));
             localStorage.setItem('myFinanceDataFinal', JSON.stringify(dbKeuangan));
             renderUI();
-        }
-    });
-}
-
-
-
-    function renderTargetList() {
-    const container = document.getElementById('listTarget');
-    container.innerHTML = '';
-
-    dbTarget.forEach((tg) => { // Hapus parameter 'index' karena kita pakai ID
-        // LOGIC DIPERBAIKI: Cari transaksi berdasarkan targetId yang cocok
-        let uangMasukTarget = 0;
-        dbKeuangan.forEach(item => {
-            if(item.kategori === 'target_prioritas' && item.targetId === tg.id) {
-                uangMasukTarget += item.jumlah;
-            }
-        });
-
-        let persen = Math.min(100, (uangMasukTarget / tg.harga) * 100).toFixed(1);
-        let sisa = tg.harga - uangMasukTarget;
-
-        container.innerHTML += `
-            <div class="target-card" style="border-left: 5px solid ${tg.skala === '🔴' ? '#e74c3c' : tg.skala === '🟡' ? '#f1c40f' : '#2ecc71'}">
-                <div class="target-header">
-                    <strong>${tg.skala} ${tg.nama}</strong>
-                    <div>
-                        ${persen >= 100 ? `<button onclick="selesaikanTargetById(${tg.id})" style="background:#27ae60; color:white; border:none; border-radius:5px; padding:2px 8px; cursor:pointer; font-size: 0.7rem;">BELI</button>` : ''}
-                        <button onclick="hapusTargetSajaById(${tg.id})" style="background:none; border:none; cursor:pointer;">🗑️</button>
-                    </div>
-                </div>
-                <div class="progress-container"><div class="progress-fill" style="width: ${persen}%"></div></div>
-                <div class="target-footer">
-                    <span>${persen}% (${formatRupiah(uangMasukTarget)} / ${formatRupiah(tg.harga)})</span>
-                    <span>${sisa > 0 ? 'Kurang ' + formatRupiah(sisa) : 'Siap Beli! ✨'}</span>
-                </div>
-            </div>`;
-    });
-}
-
-
-
-    function bukaModal() {
-        document.getElementById('myModal').style.display = "block";
-        let totalPemasukan = 0;
-        let p = { kebutuhan: 0, investasi: 0, darurat: 0, sedekah: 0, target_prioritas: 0 };
-        
-        dbKeuangan.forEach(item => {
-            if(item.kategori === 'pemasukan') totalPemasukan += item.jumlah;
-            else if (p.hasOwnProperty(item.kategori)) p[item.kategori] += item.jumlah;
-        });
-
-        let sisaKeb = (totalPemasukan * 0.8) - p.kebutuhan; 
-        let jatah20 = totalPemasukan * 0.2;
-        let sisaInv = (jatah20 / 3) - p.investasi;
-        let sisaDar = (jatah20 / 3) - p.darurat;
-        let sisaSed = (jatah20 / 3) - p.sedekah;
-
-        document.getElementById('detailAlokasi').innerHTML = `
-            🛒 <strong>Sisa Kebutuhan:</strong> ${formatRupiah(sisaKeb)}<br>
-            📈 <strong>Sisa Investasi:</strong> ${formatRupiah(sisaInv)}<br>
-            🛡️ <strong>Sisa Darurat:</strong> ${formatRupiah(sisaDar)}<br>
-            🙏 <strong>Sisa Sedekah:</strong> ${formatRupiah(sisaSed)}<br>
-            🎯 <strong>Prioritas Tabungan:</strong> ${formatRupiah(p.target_prioritas)}
-        `;
-
-        const ctx = document.getElementById('myChart').getContext('2d');
-        if (myChart) myChart.destroy();
-        myChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Kebutuhan', 'Investasi', 'Darurat', 'Sedekah'],
-                datasets: [{
-                    data: [Math.max(0, sisaKeb), Math.max(0, sisaInv), Math.max(0, sisaDar), Math.max(0, sisaSed)],
-                    backgroundColor: ['#1e3c72', '#f39c12', '#27ae60', '#9b59b6']
-                }]
-            },
-            options: { plugins: { legend: { display: false } }, cutout: '60%' }
         });
     }
 
-    function tutupModal() { document.getElementById('myModal').style.display = "none"; }
+    function hapusTargetSajaById(targetId) {
+        Swal.fire({
+            title: 'Hapus target?',
+            text: `Semua riwayat simpanan untuk target ini juga akan dihapus!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                dbKeuangan = dbKeuangan.filter(item => item.targetId !== targetId);
+                dbTarget = dbTarget.filter(t => t.id !== targetId);
+                localStorage.setItem('myTargetPrioritas', JSON.stringify(dbTarget));
+                localStorage.setItem('myFinanceDataFinal', JSON.stringify(dbKeuangan));
+                renderUI();
+            }
+        });
+    }
+
+    function renderTargetList() {
+        const container = document.getElementById('listTarget');
+        container.innerHTML = '';
+        dbTarget.forEach((tg) => {
+            let uangMasukTarget = 0;
+            dbKeuangan.forEach(item => {
+                if(item.kategori === 'target_prioritas' && item.targetId === tg.id) uangMasukTarget += item.jumlah;
+            });
+            let persen = Math.min(100, (uangMasukTarget / tg.harga) * 100).toFixed(1);
+            let sisa = tg.harga - uangMasukTarget;
+            container.innerHTML += `
+                <div class="target-card">
+                    <div class="target-header">
+                        <strong>${tg.nama}</strong>
+                        <div>
+                            ${persen >= 100 ? `<button onclick="selesaikanTargetById(${tg.id})" style="background:#71b280; color:white; border:none; border-radius:5px; padding:2px 8px; cursor:pointer; font-size: 0.7rem;">BELI</button>` : ''}
+                            <button onclick="hapusTargetSajaById(${tg.id})" style="background:none; border:none; cursor:pointer;">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="progress-container"><div class="progress-fill" style="width: ${persen}%"></div></div>
+                    <div class="target-footer">
+                        <span>${persen}% (${formatRupiah(uangMasukTarget)} / ${formatRupiah(tg.harga)})</span>
+                        <span>${sisa > 0 ? 'Sisa ' + formatRupiah(sisa) : 'Siap Beli! ✨'}</span>
+                    </div>
+                </div>`;
+        });
+    }
+
     renderUI();
 </script>
 
